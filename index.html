@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Standard Algorithm Division</title>
+<style>
+:root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#18253a;background:#f5f7fb}*{box-sizing:border-box}body{margin:0;padding:20px}.app{max-width:640px;margin:auto}
+h1{font-size:clamp(22px,4vw,30px);margin:0 0 6px;text-align:center}.sub{color:#5e6d81;font-size:14px;text-align:center;margin:0 auto 6px;max-width:460px}
+.card{background:#fff;border:1px solid #d9e1eb;border-radius:16px;padding:18px;margin:12px 0;box-shadow:0 2px 8px #152b4310}
+.tray{display:flex;gap:14px;justify-content:center;align-items:center;min-height:84px;border:2px dashed #afbed1;border-radius:14px;padding:10px;color:#8491a2;font-size:14px}
+.tray.over,.cells.over{border-color:#5144c6;background:#f0eefc}
+.plus{font-size:40px;font-weight:800;color:#5e6d81;line-height:1}
+.tray.arrow{font-size:34px;color:#afbed1}
+.tile{font-size:34px;font-weight:800;padding:10px 20px;border:2px solid #5144c6;background:#fff;color:#18253a;border-radius:12px;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;font-variant-numeric:tabular-nums;box-shadow:0 2px 6px #5144c622}
+.tile:focus-visible,.slot:focus-visible{outline:3px solid #7268e4;outline-offset:2px}
+.ghost{position:fixed;z-index:50;pointer-events:none;opacity:.9;margin:0}
+.frame{display:flex;flex-direction:column;align-items:center;margin:6px 0 2px;font-variant-numeric:tabular-nums}
+.row{display:flex;align-items:center}
+.sg{width:40px;text-align:center;font-size:38px;font-weight:700;color:#5e6d81}
+.cells{display:flex;border:2px solid transparent;border-radius:12px}
+.cells.empty{border-color:#afbed1;border-style:dashed;min-height:68px}
+.slot[role=button]{cursor:grab;touch-action:none}
+.c{width:64px;height:68px;display:flex;align-items:center;justify-content:center;font-size:44px;font-weight:800;border-radius:10px}
+.c.act{background:#eeeafe}
+.row.cr .c{height:44px}
+.row.top,.row.bot{margin:5px 0}
+.row.bot .cells{border-bottom:4px solid #18253a;border-radius:0 0 4px 4px;padding-bottom:2px}
+.row.bot .cells.empty{border-radius:12px;padding:0}
+.row.ar{margin-top:8px}
+.abox,.afix{width:56px;height:62px;font-size:38px;font-weight:800;text-align:center;border-radius:10px;font-family:inherit;padding:0}
+.abox{border:3px solid #5144c6;background:#fff;color:#18253a}
+.abox:focus{outline:3px solid #b6aef5;outline-offset:1px}
+.afix{display:flex;align-items:center;justify-content:center;border:3px solid #2e9e62;background:#f1faf5}
+.afix.wait{border:2px dashed #cdd6e2;background:transparent}
+.cbox,.cfix{width:38px;height:38px;font-size:22px;font-weight:800;text-align:center;border-radius:8px;font-family:inherit;padding:0}
+.cbox{border:2px solid #e08a1e;background:#fff8ee;color:#18253a}
+.cbox:focus{outline:3px solid #f6cf9c;outline-offset:1px}
+.cfix{display:flex;align-items:center;justify-content:center;border:2px solid #e08a1e;background:#fff8ee;color:#a35d0b}
+.msg{text-align:center;min-height:26px;font-weight:700;margin-top:10px;color:#bb3d3d}.msg.good{color:#18845a;font-size:18px}
+.help{text-align:center;color:#5e6d81;font-size:14px;margin-top:8px}
+.next{display:block;margin:6px auto 0;border:0;border-radius:10px;background:#5144c6;color:#fff;font-weight:700;font-size:16px;padding:12px 20px;cursor:pointer}
+.title2{text-align:center;font-weight:700;margin:0 0 10px}
+@media(max-width:400px){.c{width:54px}.sg{width:30px}.tile{font-size:28px;padding:8px 14px}.abox,.afix{width:48px}}
+
+:root{--cw:58px;--sg:34px}
+.ld{display:grid;justify-content:center;align-items:center;row-gap:6px;margin:10px auto;font-variant-numeric:tabular-nums}
+.ld .dv{grid-column:1;text-align:right;padding-right:10px;font-size:40px;font-weight:800}
+.ld .dd{display:flex;align-items:center;justify-content:center;height:62px;font-size:44px;font-weight:800;border-top:4px solid #18253a}
+.ld .dd.first{border-left:4px solid #18253a;border-top-left-radius:14px}
+.ld .dd.hl{background:#eeeafe}
+.ld .dd.bring{cursor:pointer;color:#5144c6}
+.ld .q{display:flex;align-items:center;justify-content:center;height:56px;font-size:44px;font-weight:800;color:#18253a}
+.ld .sign{text-align:right;padding-right:8px;font-size:38px;font-weight:700;color:#5e6d81;grid-column:2}
+.ld .n{display:flex;align-items:center;justify-content:center;height:56px;font-size:44px;font-weight:800}
+.ld .n.b{color:#5144c6}
+.ld .n.hl{background:#eeeafe;border-radius:10px}
+.ld .ln{border-top:4px solid #18253a;height:0;align-self:center}
+.ld input{width:100%;height:56px;font-size:36px;font-weight:800;text-align:right;padding:0 10px;border:3px solid #5144c6;border-radius:10px;background:#fff;font-family:inherit;font-variant-numeric:tabular-nums}
+.ld input.qi{text-align:center;padding:0;border-color:#e08a1e;background:#fff8ee}
+.ld input:focus{outline:3px solid #b6aef5;outline-offset:1px}
+.hand{font-size:30px;line-height:1;animation:bob 1s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(-4px)}50%{transform:translateY(5px)}}
+.shake{animation:wig .4s}
+@keyframes wig{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+.btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.chk{border:1px solid #5144c6;border-radius:9px;background:#5144c6;color:#fff;padding:10px 16px;font-size:16px;font-weight:700;cursor:pointer}
+.chk.alt{background:#fff;color:#5144c6}
+.chk:disabled{opacity:.4;cursor:not-allowed}
+[hidden]{display:none!important}
+.help b{color:#18253a}
+@media(max-width:480px){:root{--cw:48px;--sg:24px}.ld .dd,.ld .n,.ld .q{font-size:34px}.ld .dv{font-size:32px}.ld input{font-size:30px}}
+</style>
+</head>
+<body><main class="app">
+<h1>Standard Algorithm: Division</h1>
+<p class="sub">Divide, multiply, subtract, bring down. Then do it again.</p>
+<section class="card">
+ <div class="ld" id="ld"></div>
+ <div class="btns" id="ctl"><button class="chk" id="chk" type="button">Check</button><button class="chk alt" id="undo" type="button">Undo</button></div>
+ <div class="msg" id="msg" role="status" aria-live="polite"></div>
+ <div class="help" id="help"></div>
+</section>
+<button class="next" id="next" type="button">New problem &#8635;</button>
+</main>
+<script>
+(()=>{
+const $=id=>document.getElementById(id);
+let dividend=1248,d=24,D=[],steps=[],idx=0,result={q:0,r:0};
+const dc=x=>String(x).length;
+function build(a,b){
+ const digits=String(a).split('').map(Number),nd=digits.length,st=[];
+ let pos=0,cur=digits[0];
+ while(cur<b&&pos<nd-1){pos++;cur=cur*10+digits[pos];}
+ const qs=[];
+ for(;;){
+  const q=Math.floor(cur/b);qs.push(q);
+  st.push({k:'q',col:pos,want:q,cur,w:dc(cur)});
+  let rem=cur;
+  if(q>0){const pr=q*b;st.push({k:'p',col:pos,want:pr,q,cur,w:dc(cur)});rem=cur-pr;st.push({k:'d',col:pos,want:rem,q,cur,pr,w:dc(cur)});}
+  if(pos<nd-1){st.push({k:'b',col:pos+1,want:digits[pos+1]});pos++;cur=rem*10+digits[pos];}
+  else{return {digits,steps:st,qs,rem};}
+ }
+}
+function setup(a,b){
+ dividend=a;d=b;const r=build(a,b);D=r.digits;steps=r.steps;idx=0;
+ result={q:+r.qs.join(''),r:r.rem};
+ $('msg').textContent='';$('msg').className='msg';render();
+}
+function render(){
+ const nd=D.length,cur=idx<steps.length?steps[idx]:null,finished=cur===null;
+ const ld=$('ld');ld.style.gridTemplateColumns=`auto var(--sg) repeat(${nd},var(--cw))`;
+ const items=[];const add=(row,col,html,cls='',span=1,tag='div')=>items.push(`<${tag} class="${cls}" style="grid-row:${row};grid-column:${col}${span>1?' / span '+span:''}">${html}</${tag}>`);
+ // quotient row
+ steps.slice(0,idx).forEach(s=>{if(s.k==='q')add(1,3+s.col,s.want,'q');});
+ const firstQ=steps[0].col;
+ if(cur&&cur.k==='q')add(1,3+cur.col,`<input class="qi" id="inQ" inputmode="numeric" maxlength="1" autocomplete="off" aria-label="Quotient digit">`,'');
+ if(cur&&cur.k==='b')add(1,3+cur.col,'<span class="hand" aria-hidden="true">\uD83D\uDC47</span>','q');
+ // dividend row
+ add(2,1,d,'dv');
+ const initW=steps[0].w;
+ D.forEach((x,i)=>{
+  const brought=steps.slice(0,idx).some(s=>s.k==='b'&&s.col===i);
+  const canBring=cur&&cur.k==='b'&&cur.col===i;
+  const hl=idx===0&&i<=firstQ;
+  add(2,3+i,x,`dd${i===0?' first':''}${hl?' hl':''}${canBring?' bring':''}`);
+ });
+ // work rows
+ let row=3,lastDiffRow=null;
+ steps.slice(0,idx).forEach(s=>{
+  if(s.k==='p'){
+   const str=String(s.want);
+   add(row,2,'\u2212','sign');
+   [...str].forEach((c,i)=>add(row,3+s.col-str.length+1+i,c,'n'));
+   row++;
+   add(row,3+s.col-s.w+1,'','ln',s.w);row++;
+  }else if(s.k==='d'){
+   const str=String(s.want);
+   [...str].forEach((c,i)=>add(row,3+s.col-str.length+1+i,c,'n'));
+   lastDiffRow=row;row++;
+  }else if(s.k==='b'){
+   add(lastDiffRow,3+s.col,s.want,'n b');
+  }
+ });
+ if(cur&&(cur.k==='p'||cur.k==='d')){
+  if(cur.k==='p')add(row,2,'\u2212','sign');
+  add(row,3+cur.col-cur.w+1,`<input id="inNum" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="${cur.k==='p'?'Product':'Difference'}">`,'',cur.w);
+ }
+ ld.innerHTML=items.join('');
+ // messages
+ const msg=$('msg');
+ if(finished){msg.className='msg good';msg.textContent=`\u2713 Correct! ${dividend} \u00F7 ${d} = ${result.q}${result.r?' R '+result.r:''}. Great work!`;$('help').textContent='';}
+ else{if(msg.classList.contains('good')){msg.className='msg';msg.textContent='';}
+  let h='';
+  if(cur.k==='q')h=`How many <b>${d}s</b> fit in <b>${cur.cur}</b>?`;
+  else if(cur.k==='p')h=`<b>${cur.q} \u00D7 ${d}</b>`;
+  else if(cur.k==='d')h=`<b>${cur.cur} \u2212 ${cur.pr}</b>`;
+  else h='Bring down the next digit.';
+  $('help').innerHTML=h;}
+ $('ctl').hidden=finished;$('undo').disabled=idx===0;
+ $('chk').hidden=!(cur&&(cur.k==='p'||cur.k==='d'||cur.k==='q'));
+ const iq=$('inQ'),inn=$('inNum');
+ if(iq){iq.oninput=()=>check();iq.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();check();}};iq.focus();}
+ if(inn){inn.oninput=()=>{inn.value=inn.value.replace(/\D/g,'');if(inn.value.length>=String(cur.want).length)check();};inn.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();check();}};inn.focus();}
+ const br=ld.querySelector('.dd.bring');
+ if(br)br.onclick=()=>{idx++;setMsg('');render();};
+}
+function setMsg(t){$('msg').className='msg';$('msg').textContent=t;}
+function shake(el){el.classList.remove('shake');void el.offsetWidth;el.classList.add('shake');}
+function check(){
+ const cur=steps[idx];if(!cur)return;
+ if(cur.k==='q'){
+  const el=$('inQ');const v=el.value.replace(/\D/g,'');if(v==='')return;const x=+v;
+  if(x===cur.want){idx++;setMsg('');render();return;}
+  el.value='';shake(el);
+  if(x*d>cur.cur)setMsg(`${x} \u00D7 ${d} = ${x*d} is too big for ${cur.cur}.`);
+  else setMsg(`${x} \u00D7 ${d} = ${x*d}. More ${d}s fit in ${cur.cur}.`);
+  return;}
+ if(cur.k==='p'||cur.k==='d'){
+  const el=$('inNum');const v=el.value.replace(/\D/g,'');if(v==='')return;
+  if(+v===cur.want){idx++;setMsg('');render();return;}
+  el.value='';shake(el);
+  setMsg(cur.k==='p'?`Not quite. ${cur.q} \u00D7 ${d} = ?`:`Not quite. ${cur.cur} \u2212 ${cur.pr} = ?`);
+ }
+}
+$('chk').onclick=check;
+$('undo').onclick=()=>{if(idx>0){idx--;setMsg('');render();}};
+function newProblem(){
+ const r=(lo,hi)=>lo+Math.floor(Math.random()*(hi-lo+1));
+ let a,b;
+ do{b=r(5,50);a=Math.random()<.5?r(100,999):r(1000,9999);if(Math.random()<.4)a-=a%b;}while(a<100||a<5*b);
+ setup(a,b);
+}
+$('next').onclick=newProblem;
+newProblem();
+})();
+</script></body></html>
