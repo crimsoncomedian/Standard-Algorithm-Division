@@ -85,7 +85,7 @@ h1{font-size:clamp(22px,4vw,30px);margin:0 0 6px;text-align:center}.sub{color:#5
 <script>
 (()=>{
 const $=id=>document.getElementById(id);
-let dividend=1248,d=24,D=[],steps=[],idx=0,result={q:0,r:0};
+let dividend=1248,d=24,D=[],steps=[],idx=0,result={q:0,r:0},justBrought=null;
 const dc=x=>String(x).length;
 function build(a,b){
  const digits=String(a).split('').map(Number),nd=digits.length,st=[];
@@ -146,6 +146,7 @@ function render(){
   add(row,3+cur.col-cur.w+1,`<input id="inNum" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="${cur.k==='p'?'Product':'Difference'}">`,'',cur.w);
  }
  ld.innerHTML=items.join('');
+ if(justBrought){playBringDown(justBrought);justBrought=null;}
  // messages
  const msg=$('msg');
  if(finished){msg.className='msg good';msg.textContent=`\u2713 Correct! ${dividend} \u00F7 ${d} = ${result.q}${result.r?' R '+result.r:''}. Great work!`;$('help').textContent='';}
@@ -162,7 +163,21 @@ function render(){
  if(iq){iq.oninput=()=>check();iq.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();check();}};iq.focus();}
  if(inn){inn.oninput=()=>{inn.value=inn.value.replace(/\D/g,'');if(inn.value.length>=String(cur.want).length)check();};inn.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();check();}};inn.focus();}
  const br=ld.querySelector('.dd.bring');
- if(br)br.onclick=()=>{idx++;setMsg('');render();};
+ if(br)br.onclick=()=>{justBrought=br.getBoundingClientRect();idx++;setMsg('');render();};
+}
+function playBringDown(src){
+ if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+ const el=[...$('ld').querySelectorAll('.n.b')].pop();if(!el)return;
+ const dst=el.getBoundingClientRect();
+ const dx=(src.left+src.width/2)-(dst.left+dst.width/2),dy=src.top-dst.top;
+ const H=Math.max(0,dst.top-src.bottom+dst.height*.2);
+ const arrow=document.createElement('div');
+ arrow.style.cssText=`position:fixed;z-index:40;pointer-events:none;left:${src.left+src.width/2-3}px;top:${src.bottom}px;width:6px;height:${H}px;background:#5144c6;border-radius:3px;transform-origin:top;`;
+ const head=document.createElement('div');
+ head.style.cssText='position:absolute;left:-9px;bottom:-12px;width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-top:16px solid #5144c6;';
+ arrow.append(head);document.body.append(arrow);
+ arrow.animate([{transform:'scaleY(0)',opacity:1},{transform:'scaleY(1)',opacity:1,offset:.45},{transform:'scaleY(1)',opacity:1,offset:.8},{transform:'scaleY(1)',opacity:0}],{duration:1000,easing:'ease-out'}).onfinish=()=>arrow.remove();
+ el.animate([{transform:`translate(${dx}px,${dy}px)`,opacity:.9},{transform:'none',opacity:1}],{duration:650,delay:300,easing:'ease-in-out',fill:'backwards'});
 }
 function setMsg(t){$('msg').className='msg';$('msg').textContent=t;}
 function shake(el){el.classList.remove('shake');void el.offsetWidth;el.classList.add('shake');}
