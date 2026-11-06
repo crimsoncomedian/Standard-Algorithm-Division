@@ -76,7 +76,7 @@ h1{font-size:clamp(22px,4vw,30px);margin:0 0 6px;text-align:center}.sub{color:#5
 <p class="sub">Divide, multiply, subtract, bring down. Then do it again.</p>
 <section class="card">
  <div class="ld" id="ld"></div>
- <div class="btns" id="ctl"><button class="chk" id="chk" type="button">Check</button><button class="chk alt" id="undo" type="button">Undo</button></div>
+ <div class="btns" id="ctl"><button class="chk" id="chk" type="button">Check</button><button class="chk alt" id="show" type="button">Show me</button><button class="chk alt" id="undo" type="button">Undo</button></div>
  <div class="msg" id="msg" role="status" aria-live="polite"></div>
  <div class="help" id="help"></div>
 </section>
@@ -197,7 +197,16 @@ function check(){
   setMsg(cur.k==='p'?`Not quite. ${cur.q} \u00D7 ${d} = ?`:`Not quite. ${cur.cur} \u2212 ${cur.pr} = ?`);
  }
 }
+// Show me does the step the student is on: it fills in the answer (and checks it), or brings the next digit down.
+function showMe(){
+ const cur=steps[idx];if(!cur)return;
+ setMsg('');
+ if(cur.k==='q'){$('inQ').value=cur.want;check();}
+ else if(cur.k==='p'||cur.k==='d'){$('inNum').value=cur.want;check();}
+ else{const br=$('ld').querySelector('.dd.bring');if(br){justBrought=br.getBoundingClientRect();idx++;render();}}
+}
 $('chk').onclick=check;
+$('show').onclick=showMe;
 $('undo').onclick=()=>{if(idx>0){idx--;setMsg('');render();}};
 function newProblem(){
  const r=(lo,hi)=>lo+Math.floor(Math.random()*(hi-lo+1));
